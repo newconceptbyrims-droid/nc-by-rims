@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --color-ink: #0a0a0a;
+  --color-charcoal: #18181a;
+  --color-paper: #fafaf9;
+  --color-cloud: #f2f1ef;
+  --color-line-light: #e2e0dc;
+  --color-line-dark: #2a2a2c;
+  --color-muted-on-light: #57534e;
+  --color-muted-on-dark: #a1a1aa;
+  --color-gold: #b8963f;
+}
+
+@theme inline {
+  --color-ink: var(--color-ink);
+  --color-charcoal: var(--color-charcoal);
+  --color-paper: var(--color-paper);
+  --color-cloud: var(--color-cloud);
+  --color-line-light: var(--color-line-light);
+  --color-line-dark: var(--color-line-dark);
+  --color-muted-on-light: var(--color-muted-on-light);
+  --color-muted-on-dark: var(--color-muted-on-dark);
+  --color-gold: var(--color-gold);
+
+  --font-display: var(--font-inter-display);
+  --font-sans: var(--font-inter);
+  --font-logo: var(--font-jost);
+
+  --animate-marquee: marquee 40s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.marquee-pausable:hover .marquee-track,
+.marquee-pausable:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+    overflow-x: auto;
+  }
+}
