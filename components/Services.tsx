@@ -12,12 +12,7 @@ export default function Services() {
   return (
     <section id="prestations" className="bg-ink py-24 text-paper md:py-36">
       <div className="mx-auto max-w-5xl px-6 md:px-10">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewportOnce}
-          className="text-center"
-        >
+        <motion.div initial="hidden" whileInView="visible" viewport={viewportOnce}>
           <motion.p
             variants={fadeUp()}
             className="mb-4 font-sans text-xs font-medium tracking-[0.3em] text-muted-on-dark uppercase"
@@ -34,7 +29,7 @@ export default function Services() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewportOnce}
           transition={{ duration: 0.6, delay: 0.15, ease: EASE_OUT }}
-          className="mt-14 flex flex-wrap justify-center gap-2 border-b border-line-dark pb-6 md:gap-3"
+          className="mt-14 flex flex-wrap gap-2 border-b border-line-dark pb-6 md:gap-3"
         >
           {serviceCategories.map((category) => {
             const isActive = category.id === activeId;
@@ -44,7 +39,7 @@ export default function Services() {
                 type="button"
                 onClick={() => setActiveId(category.id)}
                 aria-pressed={isActive}
-                className={`rounded-full border px-5 py-2.5 font-sans text-sm font-medium tracking-wide transition-colors duration-300 cursor-pointer ${
+                className={`rounded-full border px-5 py-2.5 font-sans text-sm font-medium tracking-wide transition-all duration-300 active:scale-[0.97] cursor-pointer ${
                   isActive
                     ? "border-paper bg-paper text-ink"
                     : "border-line-dark text-muted-on-dark hover:border-paper/60 hover:text-paper"
@@ -96,7 +91,7 @@ export default function Services() {
         <div className="mt-6 text-center">
           <a
             href="#contact"
-            className="inline-block rounded-full border border-paper px-7 py-3.5 font-sans text-sm font-medium tracking-wide transition-colors duration-300 hover:bg-paper hover:text-ink cursor-pointer"
+            className="inline-block rounded-full border border-paper px-7 py-3.5 font-sans text-sm font-medium tracking-wide transition-all duration-300 hover:bg-paper hover:text-ink active:scale-[0.97] cursor-pointer"
           >
             Demander un devis personnalisé
           </a>

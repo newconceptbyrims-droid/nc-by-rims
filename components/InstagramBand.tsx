@@ -71,7 +71,7 @@ export default function InstagramBand() {
             href={site.instagram.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block rounded-full border border-paper px-7 py-3.5 font-sans text-sm font-medium tracking-wide transition-colors duration-300 hover:bg-paper hover:text-ink cursor-pointer"
+            className="inline-block rounded-full border border-paper px-7 py-3.5 font-sans text-sm font-medium tracking-wide transition-all duration-300 hover:bg-paper hover:text-ink active:scale-[0.97] cursor-pointer"
           >
             Suivre {site.instagram.handle}
           </a>

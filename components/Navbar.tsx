@@ -76,7 +76,7 @@ export default function Navbar() {
             </a>
             <a
               href="#contact"
-              className={`rounded-full border px-5 py-2.5 text-sm font-medium tracking-wide transition-colors duration-300 cursor-pointer ${
+              className={`rounded-full border px-5 py-2.5 text-sm font-medium tracking-wide transition-all duration-300 active:scale-[0.97] cursor-pointer ${
                 scrolled
                   ? "border-ink hover:bg-ink hover:text-paper"
                   : "border-paper hover:bg-paper hover:text-ink"
@@ -89,11 +89,11 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="flex h-11 w-11 items-center justify-center lg:hidden cursor-pointer"
+            className="flex h-11 w-11 items-center justify-center transition-transform duration-200 active:scale-[0.9] lg:hidden cursor-pointer"
             aria-label="Ouvrir le menu"
             aria-expanded={open}
           >
-            <List size={26} />
+            <List size={26} weight="light" />
           </button>
         </nav>
       </header>
@@ -120,10 +120,10 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="flex h-11 w-11 items-center justify-center cursor-pointer"
+                className="flex h-11 w-11 items-center justify-center transition-transform duration-200 active:scale-[0.9] cursor-pointer"
                 aria-label="Fermer le menu"
               >
-                <X size={26} />
+                <X size={26} weight="light" />
               </button>
             </div>
 
@@ -165,7 +165,7 @@ export default function Navbar() {
               <a
                 href="#contact"
                 onClick={() => setOpen(false)}
-                className="rounded-full border border-paper px-5 py-3 text-center text-sm font-medium tracking-wide cursor-pointer"
+                className="rounded-full border border-paper px-5 py-3 text-center text-sm font-medium tracking-wide transition-transform duration-200 active:scale-[0.97] cursor-pointer"
               >
                 Prendre rendez-vous
               </a>

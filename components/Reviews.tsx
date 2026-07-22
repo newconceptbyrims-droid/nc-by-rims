@@ -70,7 +70,7 @@ function StarRating({ rating, size = 20 }: { rating: number; size?: number }) {
 export default function Reviews() {
   return (
     <section id="avis" className="bg-cloud py-24 md:py-36">
-      <div className="mx-auto max-w-2xl px-6 text-center md:px-10">
+      <div className="mx-auto max-w-7xl px-6 md:px-10">
         <motion.div initial="hidden" whileInView="visible" viewport={viewportOnce}>
           <motion.p
             variants={fadeUp()}
@@ -84,7 +84,7 @@ export default function Reviews() {
 
           <motion.div
             variants={fadeUp(0.1)}
-            className="mt-6 flex items-center justify-center gap-3"
+            className="mt-6 flex items-center gap-3"
           >
             <StarRating rating={GOOGLE_RATING} />
             <span className="font-sans text-sm text-muted-on-light">
@@ -126,7 +126,7 @@ export default function Reviews() {
           href={site.googleReviewsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-full border border-ink px-7 py-3.5 font-sans text-sm font-medium tracking-wide transition-colors duration-300 hover:bg-ink hover:text-paper cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-full border border-ink px-7 py-3.5 font-sans text-sm font-medium tracking-wide transition-all duration-300 hover:bg-ink hover:text-paper active:scale-[0.97] cursor-pointer"
         >
           Voir tous nos avis Google
           <ArrowUpRight size={18} weight="light" />

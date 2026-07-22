@@ -84,7 +84,7 @@ export default function Hero() {
           </a>
           <a
             href="#prestations"
-            className="rounded-full border border-paper/40 px-7 py-3.5 text-sm font-medium tracking-wide transition-colors duration-300 hover:bg-paper/10 cursor-pointer"
+            className="rounded-full border border-paper/40 px-7 py-3.5 text-sm font-medium tracking-wide transition-all duration-300 hover:bg-paper/10 active:scale-[0.97] cursor-pointer"
           >
             Voir les prestations
           </a>

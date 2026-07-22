@@ -72,7 +72,7 @@ export default function Footer() {
           <a
             href="#accueil"
             aria-label="Retour en haut de page"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-line-dark transition-colors duration-300 hover:border-paper cursor-pointer"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-line-dark transition-all duration-300 hover:border-paper active:scale-[0.9] cursor-pointer"
           >
             <ArrowUp size={18} weight="light" />
           </a>
