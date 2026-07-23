@@ -20,10 +20,7 @@ export const site = {
   },
   googleReviewsUrl:
     "https://www.google.com/search?hl=fr-FR&q=avis+sur+new+concept+by+rims",
-  // TODO client: remplacer par le vrai lien "Obtenir plus d'avis" de la fiche
-  // Google Business (format g.page/r/XXXXXXX/review), sinon les liens étoiles
-  // de l'email d'avis post-visite ne fonctionneront pas.
-  googleReviewLeaveUrl: "https://g.page/r/REPLACE_WITH_REAL_CODE/review",
+  googleReviewLeaveUrl: "https://g.page/r/CQlfdKJhlszNEBM/review",
   mapsEmbedSrc:
     "https://www.google.com/maps?q=89+avenue+des+Ternes,+75017+Paris&output=embed",
   mapsDirectionsUrl:
