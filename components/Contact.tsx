@@ -7,8 +7,10 @@ import { fadeUp, staggerContainer, viewportOnce } from "@/lib/motion";
 import { site } from "@/data/site";
 import { serviceCategories } from "@/data/services";
 
-type FieldErrors = Partial<Record<"name" | "phone" | "message", string>>;
+type FieldErrors = Partial<Record<"name" | "email" | "phone" | "message", string>>;
 type Status = "idle" | "loading" | "success" | "error";
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const serviceOptions = serviceCategories.flatMap((c) => c.items.map((i) => i.name));
 
@@ -17,6 +19,7 @@ export default function Contact() {
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
 
@@ -25,12 +28,14 @@ export default function Contact() {
     const form = e.currentTarget;
     const data = new FormData(form);
     const name = String(data.get("name") ?? "").trim();
+    const email = String(data.get("email") ?? "").trim();
     const phone = String(data.get("phone") ?? "").trim();
     const message = String(data.get("message") ?? "").trim();
     const service = String(data.get("service") ?? "");
 
     const nextErrors: FieldErrors = {};
     if (name.length < 2) nextErrors.name = "Merci d'indiquer votre nom.";
+    if (!EMAIL_PATTERN.test(email)) nextErrors.email = "Merci d'indiquer un email valide.";
     if (phone.length < 6) nextErrors.phone = "Merci d'indiquer un numéro valide.";
     if (message.length < 4) nextErrors.message = "Dites-nous en un peu plus.";
 
@@ -38,6 +43,7 @@ export default function Contact() {
 
     if (Object.keys(nextErrors).length > 0) {
       if (nextErrors.name) nameRef.current?.focus();
+      else if (nextErrors.email) emailRef.current?.focus();
       else if (nextErrors.phone) phoneRef.current?.focus();
       else messageRef.current?.focus();
       return;
@@ -48,7 +54,7 @@ export default function Contact() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, service, message }),
+        body: JSON.stringify({ name, email, phone, service, message }),
       });
       const payload = (await res.json()) as { error?: string; success?: boolean };
 
@@ -183,6 +189,28 @@ export default function Contact() {
             </div>
 
             <div>
+              <label htmlFor="email" className="font-sans text-sm font-medium">
+                Email <span aria-hidden="true">*</span>
+              </label>
+              <input
+                ref={emailRef}
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? "email-error" : undefined}
+                className="mt-2 w-full border-b border-line-light bg-transparent py-3 font-sans text-base outline-none transition-colors focus:border-ink"
+              />
+              {errors.email && (
+                <p id="email-error" role="alert" className="mt-2 text-sm text-red-700">
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            <div>
               <label htmlFor="service" className="font-sans text-sm font-medium">
                 Prestation souhaitée
               </label>
@@ -235,8 +263,9 @@ export default function Contact() {
             <div aria-live="polite">
               {status === "success" && (
                 <p className="font-sans text-sm text-emerald-700">
-                  Merci ! Votre demande a bien été envoyée, nous vous
-                  recontactons rapidement.
+                  Merci ! Votre demande a bien été envoyée — vous allez
+                  recevoir un email de confirmation, et nous vous recontactons
+                  rapidement.
                 </p>
               )}
               {status === "error" && (

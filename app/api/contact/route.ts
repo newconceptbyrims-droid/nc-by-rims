@@ -1,13 +1,17 @@
 import { Resend } from "resend";
+import { site } from "@/data/site";
 
 export const runtime = "nodejs";
 
 type ContactPayload = {
   name: string;
+  email: string;
   phone: string;
   service?: string;
   message: string;
 };
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Best-effort in-memory rate limit (per server instance): 5 requests / 10 min / IP.
 // Not a substitute for a shared store (e.g. Upstash) under multi-instance hosting,
@@ -35,11 +39,14 @@ function isRateLimited(ip: string): boolean {
 
 function isValidPayload(data: unknown): data is ContactPayload {
   if (!data || typeof data !== "object") return false;
-  const { name, phone, service, message } = data as Record<string, unknown>;
+  const { name, email, phone, service, message } = data as Record<string, unknown>;
   return (
     typeof name === "string" &&
     name.trim().length > 1 &&
     name.length <= 100 &&
+    typeof email === "string" &&
+    email.length <= 254 &&
+    EMAIL_PATTERN.test(email) &&
     typeof phone === "string" &&
     phone.trim().length > 5 &&
     phone.length <= 30 &&
@@ -73,12 +80,15 @@ export async function POST(request: Request) {
 
   if (!isValidPayload(body)) {
     return Response.json(
-      { error: "Merci de renseigner votre nom, votre téléphone et votre message." },
+      {
+        error:
+          "Merci de renseigner votre nom, votre email, votre téléphone et votre message.",
+      },
       { status: 400 }
     );
   }
 
-  const { name, phone, service, message } = body;
+  const { name, email, phone, service, message } = body;
 
   const apiKey = process.env.RESEND_API_KEY;
   const toEmail = process.env.CONTACT_TO_EMAIL;
@@ -97,14 +107,17 @@ export async function POST(request: Request) {
     );
   }
 
+  const resend = new Resend(apiKey);
+
   try {
-    const resend = new Resend(apiKey);
     const { error } = await resend.emails.send({
       from: `New Concept by Rims <${fromEmail}>`,
       to: toEmail,
+      replyTo: email,
       subject: `Nouvelle demande de rendez-vous — ${name}`,
       text: [
         `Nom : ${name}`,
+        `Email : ${email}`,
         `Téléphone : ${phone}`,
         service ? `Prestation souhaitée : ${service}` : null,
         "",
@@ -122,8 +135,6 @@ export async function POST(request: Request) {
         { status: 502 }
       );
     }
-
-    return Response.json({ success: true });
   } catch (err) {
     console.error("Contact form send failure:", err);
     return Response.json(
@@ -131,4 +142,37 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+
+  // Confirmation email to the client. Best-effort: the salon has already been
+  // notified above, so a failure here shouldn't surface as an error to the user.
+  try {
+    await resend.emails.send({
+      from: `New Concept by Rims <${fromEmail}>`,
+      to: email,
+      subject: "Votre demande a bien été reçue — New Concept by Rims",
+      text: [
+        `Bonjour ${name},`,
+        "",
+        "Merci pour votre message ! Nous avons bien reçu votre demande et nous vous recontactons rapidement pour confirmer votre rendez-vous.",
+        "",
+        "Récapitulatif de votre demande :",
+        service ? `Prestation souhaitée : ${service}` : null,
+        `Message : ${message}`,
+        "",
+        "Nos coordonnées :",
+        site.address.full,
+        site.phone,
+        site.hours.map((h) => `${h.days} : ${h.hours}`).join(" | "),
+        "",
+        "À très vite,",
+        "L'équipe New Concept by Rims",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    });
+  } catch (err) {
+    console.error("Client confirmation email failed:", err);
+  }
+
+  return Response.json({ success: true });
 }
