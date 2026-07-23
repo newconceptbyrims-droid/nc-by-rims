@@ -7,21 +7,77 @@ import { fadeUp, staggerContainer, viewportOnce } from "@/lib/motion";
 import { site } from "@/data/site";
 import { serviceCategories } from "@/data/services";
 
-type FieldErrors = Partial<Record<"name" | "email" | "phone" | "message", string>>;
+type FieldErrors = Partial<
+  Record<"name" | "email" | "phone" | "message" | "date" | "time", string>
+>;
 type Status = "idle" | "loading" | "success" | "error";
+type SlotsState = "idle" | "loading" | "loaded" | "error";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const OPEN_DAYS = [2, 3, 4, 5, 6]; // Tue..Sat, matches lib/availability.ts
 
 const serviceOptions = serviceCategories.flatMap((c) => c.items.map((i) => i.name));
+
+function toDateStr(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+const today = new Date();
+const MIN_DATE = toDateStr(today);
+const MAX_DATE = toDateStr(new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000));
 
 export default function Contact() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [slots, setSlots] = useState<string[]>([]);
+  const [slotsState, setSlotsState] = useState<SlotsState>("idle");
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
+  const timeRef = useRef<HTMLSelectElement>(null);
   const messageRef = useRef<HTMLTextAreaElement>(null);
+
+  const slotsRequestRef = useRef(0);
+
+  function handleDateChange(nextDate: string) {
+    setDate(nextDate);
+    setTime("");
+
+    if (!nextDate) {
+      setSlots([]);
+      setSlotsState("idle");
+      return;
+    }
+    const dow = new Date(`${nextDate}T12:00:00Z`).getUTCDay();
+    if (!OPEN_DAYS.includes(dow)) {
+      setSlots([]);
+      setSlotsState("loaded");
+      return;
+    }
+
+    const requestId = ++slotsRequestRef.current;
+    setSlotsState("loading");
+    fetch(`/api/availability?date=${nextDate}`)
+      .then(async (res) => {
+        const payload = (await res.json()) as { slots?: string[] };
+        if (!res.ok) throw new Error(payload?.slots ? "" : "unavailable");
+        return payload;
+      })
+      .then((payload) => {
+        if (slotsRequestRef.current !== requestId) return;
+        setSlots(payload.slots ?? []);
+        setSlotsState("loaded");
+      })
+      .catch(() => {
+        if (slotsRequestRef.current !== requestId) return;
+        setSlots([]);
+        setSlotsState("error");
+      });
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -37,6 +93,8 @@ export default function Contact() {
     if (name.length < 2) nextErrors.name = "Merci d'indiquer votre nom.";
     if (!EMAIL_PATTERN.test(email)) nextErrors.email = "Merci d'indiquer un email valide.";
     if (phone.length < 6) nextErrors.phone = "Merci d'indiquer un numéro valide.";
+    if (!date) nextErrors.date = "Merci de choisir une date.";
+    if (!time) nextErrors.time = "Merci de choisir un horaire.";
     if (message.length < 4) nextErrors.message = "Dites-nous en un peu plus.";
 
     setErrors(nextErrors);
@@ -45,6 +103,8 @@ export default function Contact() {
       if (nextErrors.name) nameRef.current?.focus();
       else if (nextErrors.email) emailRef.current?.focus();
       else if (nextErrors.phone) phoneRef.current?.focus();
+      else if (nextErrors.date) dateRef.current?.focus();
+      else if (nextErrors.time) timeRef.current?.focus();
       else messageRef.current?.focus();
       return;
     }
@@ -54,7 +114,7 @@ export default function Contact() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, service, message }),
+        body: JSON.stringify({ name, email, phone, service, message, date, time }),
       });
       const payload = (await res.json()) as { error?: string; success?: boolean };
 
@@ -68,6 +128,10 @@ export default function Contact() {
 
       setStatus("success");
       form.reset();
+      setDate("");
+      setTime("");
+      setSlots([]);
+      setSlotsState("idle");
     } catch {
       setStatus("error");
       setErrorMessage(
@@ -75,6 +139,8 @@ export default function Contact() {
       );
     }
   }
+
+  const noSlotsForDate = slotsState === "loaded" && date && slots.length === 0;
 
   return (
     <section id="contact" className="bg-paper py-24 md:py-36">
@@ -210,6 +276,83 @@ export default function Contact() {
               )}
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="date" className="font-sans text-sm font-medium">
+                  Date <span aria-hidden="true">*</span>
+                </label>
+                <input
+                  ref={dateRef}
+                  id="date"
+                  name="date"
+                  type="date"
+                  min={MIN_DATE}
+                  max={MAX_DATE}
+                  value={date}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  required
+                  aria-invalid={Boolean(errors.date)}
+                  aria-describedby={errors.date ? "date-error" : undefined}
+                  className="mt-2 w-full border-b border-line-light bg-transparent py-3 font-sans text-base outline-none transition-colors focus:border-ink"
+                />
+                {errors.date && (
+                  <p id="date-error" role="alert" className="mt-2 text-sm text-red-700">
+                    {errors.date}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="time" className="font-sans text-sm font-medium">
+                  Heure <span aria-hidden="true">*</span>
+                </label>
+                <select
+                  ref={timeRef}
+                  id="time"
+                  name="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  disabled={!date || slotsState === "loading" || slots.length === 0}
+                  required
+                  aria-invalid={Boolean(errors.time)}
+                  aria-describedby={errors.time ? "time-error" : undefined}
+                  className="mt-2 w-full border-b border-line-light bg-transparent py-3 font-sans text-base outline-none transition-colors focus:border-ink disabled:text-muted-on-light"
+                >
+                  <option value="" disabled>
+                    {!date
+                      ? "Choisir une date d'abord"
+                      : slotsState === "loading"
+                        ? "Chargement…"
+                        : slots.length === 0
+                          ? "Aucun créneau"
+                          : "Choisir un horaire"}
+                  </option>
+                  {slots.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                {errors.time && (
+                  <p id="time-error" role="alert" className="mt-2 text-sm text-red-700">
+                    {errors.time}
+                  </p>
+                )}
+              </div>
+            </div>
+            {slotsState === "error" && (
+              <p className="-mt-3 font-sans text-sm text-red-700">
+                Impossible de charger les créneaux disponibles. Merci de
+                réessayer ou de nous appeler directement.
+              </p>
+            )}
+            {noSlotsForDate && (
+              <p className="-mt-3 font-sans text-sm text-muted-on-light">
+                Aucun créneau disponible ce jour-là (salon fermé ou complet). Merci
+                d&apos;essayer une autre date.
+              </p>
+            )}
+
             <div>
               <label htmlFor="service" className="font-sans text-sm font-medium">
                 Prestation souhaitée
@@ -257,15 +400,14 @@ export default function Contact() {
               disabled={status === "loading"}
               className="w-full rounded-full bg-ink px-7 py-3.5 font-sans text-sm font-medium tracking-wide text-paper transition-transform duration-200 hover:scale-[1.01] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
-              {status === "loading" ? "Envoi en cours…" : "Envoyer la demande"}
+              {status === "loading" ? "Envoi en cours…" : "Réserver mon créneau"}
             </button>
 
             <div aria-live="polite">
               {status === "success" && (
                 <p className="font-sans text-sm text-emerald-700">
-                  Merci ! Votre demande a bien été envoyée — vous allez
-                  recevoir un email de confirmation, et nous vous recontactons
-                  rapidement.
+                  Merci ! Votre rendez-vous est confirmé — vous allez recevoir
+                  un email de confirmation avec tous les détails.
                 </p>
               )}
               {status === "error" && (
