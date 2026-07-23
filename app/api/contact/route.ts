@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { site } from "@/data/site";
+import { confirmationEmailHtml, confirmationEmailText } from "@/lib/email-templates";
 
 export const runtime = "nodejs";
 
@@ -146,29 +147,20 @@ export async function POST(request: Request) {
   // Confirmation email to the client. Best-effort: the salon has already been
   // notified above, so a failure here shouldn't surface as an error to the user.
   try {
+    const emailData = {
+      name,
+      service,
+      message,
+      address: site.address.full,
+      phone: site.phone,
+      mapsUrl: site.mapsDirectionsUrl,
+    };
     await resend.emails.send({
       from: `New Concept by Rims <${fromEmail}>`,
       to: email,
       subject: "Votre demande a bien été reçue — New Concept by Rims",
-      text: [
-        `Bonjour ${name},`,
-        "",
-        "Merci pour votre message ! Nous avons bien reçu votre demande et nous vous recontactons rapidement pour confirmer votre rendez-vous.",
-        "",
-        "Récapitulatif de votre demande :",
-        service ? `Prestation souhaitée : ${service}` : null,
-        `Message : ${message}`,
-        "",
-        "Nos coordonnées :",
-        site.address.full,
-        site.phone,
-        site.hours.map((h) => `${h.days} : ${h.hours}`).join(" | "),
-        "",
-        "À très vite,",
-        "L'équipe New Concept by Rims",
-      ]
-        .filter(Boolean)
-        .join("\n"),
+      html: confirmationEmailHtml(emailData),
+      text: confirmationEmailText(emailData),
     });
   } catch (err) {
     console.error("Client confirmation email failed:", err);

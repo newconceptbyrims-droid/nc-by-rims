@@ -22,4 +22,6 @@ export const site = {
     "https://www.google.com/search?hl=fr-FR&q=avis+sur+new+concept+by+rims",
   mapsEmbedSrc:
     "https://www.google.com/maps?q=89+avenue+des+Ternes,+75017+Paris&output=embed",
+  mapsDirectionsUrl:
+    "https://maps.google.com/?q=89+avenue+des+Ternes+75017+Paris",
 };
