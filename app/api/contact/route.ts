@@ -200,6 +200,7 @@ export async function POST(request: Request) {
     await resend.emails.send({
       from: `New Concept by Rims <${fromEmail}>`,
       to: email,
+      replyTo: toEmail,
       subject: "Votre rendez-vous est confirmé — New Concept by Rims",
       html: reservationConfirmedHtml(emailData),
       text: reservationConfirmedText(emailData),

@@ -26,6 +26,7 @@ export async function GET(request: Request) {
 
   const apiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.CONTACT_FROM_EMAIL || "onboarding@resend.dev";
+  const replyToEmail = process.env.CONTACT_TO_EMAIL;
   if (!apiKey) {
     console.error("Cron: RESEND_API_KEY is not configured.");
     return Response.json({ error: "Email not configured" }, { status: 503 });
@@ -63,6 +64,7 @@ export async function GET(request: Request) {
         await resend.emails.send({
           from: `New Concept by Rims <${fromEmail}>`,
           to: row.email,
+          replyTo: replyToEmail,
           subject: "Rappel — votre rendez-vous est demain",
           html: reminderEmailHtml(data),
           text: reminderEmailText(data),
@@ -96,6 +98,7 @@ export async function GET(request: Request) {
         await resend.emails.send({
           from: `New Concept by Rims <${fromEmail}>`,
           to: row.email,
+          replyTo: replyToEmail,
           subject: "Merci pour votre visite — donnez-nous votre avis",
           html: reviewRequestEmailHtml(data),
           text: reviewRequestEmailText(data),
