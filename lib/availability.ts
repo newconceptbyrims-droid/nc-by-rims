@@ -2,11 +2,12 @@ import { db } from "@/lib/db";
 import { addDays, dayOfWeek, parisTimeKey, parisWallTimeToUtc } from "@/lib/paris-time";
 
 // Assumptions (see plan doc): 30-minute slots, 1 concurrent booking per slot
-// (no per-stylist capacity modeling), Tue-Sat 10h-19h, booking window 30 days
-// ahead, no same-day slot within the next 2 hours.
+// (no per-stylist capacity modeling), Tue-Sat 10h-17h (booking cutoff, salon
+// stays open later for walk-ins), booking window 30 days ahead, no same-day
+// slot within the next 2 hours.
 export const OPEN_DAYS = [2, 3, 4, 5, 6]; // Tue..Sat
 export const OPEN_HOUR = 10;
-export const CLOSE_HOUR = 19;
+export const CLOSE_HOUR = 17;
 export const SLOT_MINUTES = 30;
 export const MIN_LEAD_MINUTES = 120;
 export const MAX_DAYS_AHEAD = 30;
